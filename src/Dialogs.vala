@@ -31,7 +31,7 @@ public bool confirm_delete_saved_search(SavedSearch search) {
 
 public bool confirm_warn_developer_changed(int number) {
     Gtk.MessageDialog dialog = new Gtk.MessageDialog.with_markup(AppWindow.get_instance(),
-        Gtk.DialogFlags.MODAL, Gtk.MessageType.WARNING, Gtk.ButtonsType.NONE,
+        Gtk.DialogFlags.MODAL, Gtk.MessageType.WARNING, Gtk.ButtonsType.NONE, "%s",
         "<span weight=\"bold\" size=\"larger\">%s</span>".printf(ngettext("Switching developers will undo all changes you have made to this photo in Shotwell",
         "Switching developers will undo all changes you have made to these photos in Shotwell", number)));
 
@@ -1515,7 +1515,7 @@ public class ProgressDialog : Gtk.Window {
         return keep_going;
     }
     
-    public void close() {
+    public new void close() {
 #if UNITY_SUPPORT
         //UnityProgressBar: reset
         uniprobar.reset();
@@ -1942,7 +1942,7 @@ public class ModifyTagsDialog : TagsDialog {
 
         Gee.Collection<Tag> terminal_tags = Tag.get_terminal_tags(source_tags);
         
-        Gee.SortedSet<string> tag_basenames = new FixedTreeSet<string>();
+        Gee.SortedSet<string> tag_basenames = new Gee.TreeSet<string>();
         foreach (Tag tag in terminal_tags)
             tag_basenames.add(HierarchicalTagUtilities.get_basename(tag.get_path()));
         
