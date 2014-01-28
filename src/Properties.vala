@@ -167,12 +167,14 @@ private class BasicProperties : Properties {
     private double clip_duration;
     private string raw_developer;
     private string raw_assoc;
+    private GpsCoords gps_coords;
     private MapWidget map_widget;
+    private bool map_widget_displayed;
 
     public BasicProperties() {
         map_widget = MapWidget.get_instance();
         map_widget.setup_map();
-        this.add(map_widget);
+        this.pack_end(map_widget);
     }
 
     protected override void clear_properties() {
@@ -191,6 +193,7 @@ private class BasicProperties : Properties {
         raw_developer = "";
         raw_assoc = "";
         map_widget.clear();
+        gps_coords = GpsCoords();
     }
 
     protected override void get_single_properties(DataView view) {
@@ -224,6 +227,8 @@ private class BasicProperties : Properties {
                 dimensions = (metadata.get_pixel_dimensions() != null) ?
                     metadata.get_orientation().rotate_dimensions(metadata.get_pixel_dimensions()) :
                     Dimensions(0, 0);
+
+                gps_coords = metadata.get_gps_coords();
             }
             
             if (source is PhotoSource)
@@ -327,7 +332,6 @@ private class BasicProperties : Properties {
 
                 video_count++;
             }
-            map_widget.add_position_marker(view);
         }
     }
 
@@ -335,6 +339,8 @@ private class BasicProperties : Properties {
         base.get_properties(current_page);
 
         map_widget.set_page(current_page);
+        map_widget_displayed = (current_page is SinglePhotoPage && gps_coords.has_gps > 0);
+
         if (end_time == 0)
             end_time = start_time;
         if (start_time == 0)
@@ -461,7 +467,17 @@ private class BasicProperties : Properties {
             }
         }
 
-        map_widget.show_position_markers();
+        if (map_widget_displayed)
+            map_widget.show_position_markers();
+    }
+
+    public override void show_all() {
+        base.show_all();
+        map_widget.set_visible(map_widget_displayed);
+    }
+
+    public bool get_map_widget_displayed(){
+        return map_widget_displayed;
     }
 }
 

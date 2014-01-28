@@ -1216,7 +1216,6 @@ public abstract class Photo : PhotoSource, Dateable, Positionable {
         params.row.flags = 0;
         params.row.master.file_format = detected.file_format;
         params.row.title = title;
-        params.row.gps_coords = gps_coords;
         params.row.comment = comment;
         params.row.rating = rating;
         
@@ -1257,7 +1256,6 @@ public abstract class Photo : PhotoSource, Dateable, Positionable {
         params.row.flags = 0;
         params.row.master.file_format = PhotoFileFormat.JFIF;
         params.row.title = null;
-        params.row.gps_coords = GpsCoords();
         params.row.comment = null;
         params.row.rating = Rating.UNRATED;
         
@@ -1411,7 +1409,6 @@ public abstract class Photo : PhotoSource, Dateable, Positionable {
             updated_row.master.original_orientation = backing.original_orientation;
         }
 
-        GpsCoords gps_coords = GpsCoords();
 
         if (detected.metadata != null) {
             MetadataDateTime? date_time = detected.metadata.get_exposure_date_time();
@@ -1420,10 +1417,6 @@ public abstract class Photo : PhotoSource, Dateable, Positionable {
             
             if (updated_row.title != detected.metadata.get_title())
                 list += "metadata:name";
-
-            gps_coords = detected.metadata.get_gps_coords();
-            if (updated_row.gps_coords != gps_coords)
-                list += "metadata:gps";
 
             
             if (updated_row.comment != detected.metadata.get_comment())
@@ -1446,7 +1439,6 @@ public abstract class Photo : PhotoSource, Dateable, Positionable {
             if (date_time != null)
                 updated_row.exposure_time = date_time.get_timestamp();
 
-            updated_row.gps_coords = gps_coords;
             updated_row.title = detected.metadata.get_title();
             updated_row.comment = detected.metadata.get_comment();
             updated_row.rating = detected.metadata.get_rating();
@@ -1557,7 +1549,6 @@ public abstract class Photo : PhotoSource, Dateable, Positionable {
         
         if (reimport_state.metadata != null) {
             set_title(reimport_state.metadata.get_title());
-            set_gps_coords(reimport_state.metadata.get_gps_coords());
             set_comment(reimport_state.metadata.get_comment());
             set_rating(reimport_state.metadata.get_rating());
             apply_user_metadata_for_reimport(reimport_state.metadata);
@@ -2321,25 +2312,12 @@ public abstract class Photo : PhotoSource, Dateable, Positionable {
     }
 
     public GpsCoords get_gps_coords() {
-        lock (row) {
-            return row.gps_coords;
-        }
+        return get_metadata().get_gps_coords();
     }
 
     public void set_gps_coords(GpsCoords gps_coords) {
-        DatabaseError dberr = null;
-        lock (row) {
-            try {
-                PhotoTable.get_instance().set_gps_coords(row.photo_id, gps_coords);
-                row.gps_coords = gps_coords;
-            } catch (DatabaseError err) {
-                dberr = err;
-            }
-        }
-        if (dberr == null)
-            notify_altered(new Alteration("metadata", "gps"));
-        else
-            warning("Unable to write gps coordinates for %s: %s", to_string(), dberr.message);
+        // TODO: GPS data was taken out of the db, so there is no way yet to
+        // set and save this data.
     }
 
     
@@ -4895,11 +4873,6 @@ public class LibraryPhoto : Photo, Flaggable, Monitorable {
         this.import_keywords = null;
         
         thumbnail_scheduler = new OneShotScheduler("LibraryPhoto", generate_thumbnails);
-        // import gps coords of photos imported with prior versions of shotwell
-        if (row.gps_coords.has_gps == -1) {
-            var gps_import_scheduler = new OneShotScheduler("LibraryPhoto", import_gps_metadata);
-            gps_import_scheduler.at_priority_idle(Priority.LOW);
-        }
 
         // if marked in a state where they're held in an orphanage, rehydrate their backlinks
         if ((row.flags & (FLAG_TRASH | FLAG_OFFLINE)) != 0)
@@ -5017,11 +4990,6 @@ public class LibraryPhoto : Photo, Flaggable, Monitorable {
         
         // fire signal that thumbnails have changed
         notify_thumbnail_altered();
-    }
-
-    private void import_gps_metadata() {
-        GpsCoords gps_coords = get_metadata().get_gps_coords();
-        set_gps_coords(gps_coords);
     }
 
     // These keywords are only used during import and should not be relied upon elsewhere.

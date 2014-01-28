@@ -84,7 +84,6 @@ public class PhotoRow {
     public uint64 flags;
     public Rating rating;
     public string title;
-    public GpsCoords gps_coords;
     public string comment;
     public string? backlinks;
     public time_t time_reimported;
@@ -101,10 +100,6 @@ public class PhotoRow {
     public PhotoRow() {
         master = new BackingPhotoRow();
         editable_id = BackingPhotoID();
-        development_ids = new BackingPhotoID[RawDeveloper.as_array().length];
-        foreach (RawDeveloper d in RawDeveloper.as_array())
-            development_ids[d] = BackingPhotoID();
-        gps_coords = GpsCoords();
         development_ids = new BackingPhotoID[RawDeveloper.as_array().length];
         foreach (RawDeveloper d in RawDeveloper.as_array())
             development_ids[d] = BackingPhotoID();
@@ -145,9 +140,6 @@ public class PhotoTable : DatabaseTable {
             + "develop_shotwell_id INTEGER DEFAULT -1, "
             + "develop_camera_id INTEGER DEFAULT -1, "
             + "develop_embedded_id INTEGER DEFAULT -1, "
-            + "has_gps INTEGER DEFAULT -1, "
-            + "gps_lat REAL, "
-            + "gps_lon REAL, "
             + "comment TEXT"
             + ")", -1, out stmt);
         assert(res == Sqlite.OK);
@@ -183,8 +175,8 @@ public class PhotoTable : DatabaseTable {
         int res = db.prepare_v2(
             "INSERT INTO PhotoTable (filename, width, height, filesize, timestamp, exposure_time, "
             + "orientation, original_orientation, import_id, event_id, md5, thumbnail_md5, "
-            + "exif_md5, time_created, file_format, title, rating, editable_id, developer, has_gps, gps_lat, gps_lon, comment) "
-            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            + "exif_md5, time_created, file_format, title, rating, editable_id, developer, comment) "
+            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             -1, out stmt);
         assert(res == Sqlite.OK);
         
@@ -228,13 +220,7 @@ public class PhotoTable : DatabaseTable {
         assert(res == Sqlite.OK);
         res = stmt.bind_text(19, photo_row.developer.to_string());
         assert(res == Sqlite.OK);
-        res = stmt.bind_int(20, photo_row.gps_coords.has_gps);
-        assert(res == Sqlite.OK);
-        res = stmt.bind_double(21, photo_row.gps_coords.latitude);
-        assert(res == Sqlite.OK);
-        res = stmt.bind_double(22, photo_row.gps_coords.longitude);
-        assert(res == Sqlite.OK);
-        res = stmt.bind_text(23, photo_row.comment);
+        res = stmt.bind_text(20, photo_row.comment);
         assert(res == Sqlite.OK);
         
         res = stmt.step();
@@ -265,8 +251,7 @@ public class PhotoTable : DatabaseTable {
         int res = db.prepare_v2(
             "UPDATE PhotoTable SET width = ?, height = ?, filesize = ?, timestamp = ?, "
             + "exposure_time = ?, orientation = ?, original_orientation = ?, md5 = ?, " 
-            + "exif_md5 = ?, thumbnail_md5 = ?, file_format = ?, title = ?, "
-            + "has_gps = ?, gps_lat = ?, gps_lon = ?, time_reimported = ? "
+            + "exif_md5 = ?, thumbnail_md5 = ?, file_format = ?, title = ?, time_reimported = ? "
             + "WHERE id = ?", -1, out stmt);
         assert(res == Sqlite.OK);
         
@@ -296,15 +281,9 @@ public class PhotoTable : DatabaseTable {
         assert(res == Sqlite.OK);
         res = stmt.bind_text(12, row.title);
         assert(res == Sqlite.OK);
-        res = stmt.bind_int(13, row.gps_coords.has_gps);
+        res = stmt.bind_int64(13, time_reimported);
         assert(res == Sqlite.OK);
-        res = stmt.bind_double(14, row.gps_coords.latitude);
-        assert(res == Sqlite.OK);
-        res = stmt.bind_double(15, row.gps_coords.longitude);
-        assert(res == Sqlite.OK);
-        res = stmt.bind_int64(16, time_reimported);
-        assert(res == Sqlite.OK);
-        res = stmt.bind_int64(17, row.photo_id.id);
+        res = stmt.bind_int64(14, row.photo_id.id);
         assert(res == Sqlite.OK);
         
         res = stmt.step();
@@ -377,7 +356,7 @@ public class PhotoTable : DatabaseTable {
             + "original_orientation, import_id, event_id, transformations, md5, thumbnail_md5, "
             + "exif_md5, time_created, flags, rating, file_format, title, backlinks, "
             + "time_reimported, editable_id, metadata_dirty, developer, develop_shotwell_id, "
-            + "develop_camera_id, develop_embedded_id, has_gps, gps_lat, gps_lon, comment "
+            + "develop_camera_id, develop_embedded_id, comment "
             + "FROM PhotoTable WHERE id=?", 
             -1, out stmt);
         assert(res == Sqlite.OK);
@@ -417,10 +396,7 @@ public class PhotoTable : DatabaseTable {
         row.development_ids[RawDeveloper.SHOTWELL] = BackingPhotoID(stmt.column_int64(24));
         row.development_ids[RawDeveloper.CAMERA] = BackingPhotoID(stmt.column_int64(25));
         row.development_ids[RawDeveloper.EMBEDDED] = BackingPhotoID(stmt.column_int64(26));
-        row.gps_coords.has_gps = stmt.column_int(27);
-        row.gps_coords.latitude = stmt.column_double(28);
-        row.gps_coords.longitude = stmt.column_double(29);
-        row.comment = stmt.column_text(30);
+        row.comment = stmt.column_text(27);
         
         return row;
     }
@@ -432,7 +408,7 @@ public class PhotoTable : DatabaseTable {
             + "original_orientation, import_id, event_id, transformations, md5, thumbnail_md5, "
             + "exif_md5, time_created, flags, rating, file_format, title, backlinks, time_reimported, "
             + "editable_id, metadata_dirty, developer, develop_shotwell_id, develop_camera_id, " 
-            + "develop_embedded_id, has_gps, gps_lat, gps_lon, comment FROM PhotoTable",
+            + "develop_embedded_id, comment FROM PhotoTable", 
             -1, out stmt);
         assert(res == Sqlite.OK);
         
@@ -468,10 +444,7 @@ public class PhotoTable : DatabaseTable {
             row.development_ids[RawDeveloper.SHOTWELL] = BackingPhotoID(stmt.column_int64(25));
             row.development_ids[RawDeveloper.CAMERA] = BackingPhotoID(stmt.column_int64(26));
             row.development_ids[RawDeveloper.EMBEDDED] = BackingPhotoID(stmt.column_int64(27));
-            row.gps_coords.has_gps = stmt.column_int(28);
-            row.gps_coords.latitude = stmt.column_double(29);
-            row.gps_coords.longitude = stmt.column_double(30);
-            row.comment = stmt.column_text(31);
+            row.comment = stmt.column_text(28);
             
             validate_orientation(row);
             
@@ -493,9 +466,9 @@ public class PhotoTable : DatabaseTable {
         int res = db.prepare_v2("INSERT INTO PhotoTable (filename, width, height, filesize, "
             + "timestamp, exposure_time, orientation, original_orientation, import_id, event_id, "
             + "transformations, md5, thumbnail_md5, exif_md5, time_created, flags, rating, "
-            + "file_format, title, has_gps, gps_lat, gps_lon, editable_id, developer, "
-            + "develop_shotwell_id, develop_camera_id, develop_embedded_id, comment) "
-            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            + "file_format, title, editable_id, developer, develop_shotwell_id, develop_camera_id, "
+            + "develop_embedded_id, comment) "
+            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             -1, out stmt);
         assert(res == Sqlite.OK);
         
@@ -537,23 +510,18 @@ public class PhotoTable : DatabaseTable {
         assert(res == Sqlite.OK);
         res = stmt.bind_text(19, original.title);
         assert(res == Sqlite.OK);
-        res = stmt.bind_int(20, original.gps_coords.has_gps);
+        res = stmt.bind_int64(20, editable_id.id);
         assert(res == Sqlite.OK);
-        res = stmt.bind_double(21, original.gps_coords.latitude);
+        
+        res = stmt.bind_text(21, original.developer.to_string());
         assert(res == Sqlite.OK);
-        res = stmt.bind_double(22, original.gps_coords.longitude);
+        res = stmt.bind_int64(22, develop_shotwell.id);
         assert(res == Sqlite.OK);
-        res = stmt.bind_int64(23, editable_id.id);
+        res = stmt.bind_int64(23, develop_camera_id.id);
         assert(res == Sqlite.OK);
-        res = stmt.bind_text(24, original.developer.to_string());
+        res = stmt.bind_int64(24, develop_embedded_id.id);
         assert(res == Sqlite.OK);
-        res = stmt.bind_int64(25, develop_shotwell.id);
-        assert(res == Sqlite.OK);
-        res = stmt.bind_int64(26, develop_camera_id.id);
-        assert(res == Sqlite.OK);
-        res = stmt.bind_int64(27, develop_embedded_id.id);
-        assert(res == Sqlite.OK);
-        res = stmt.bind_text(28, original.comment);
+        res = stmt.bind_text(25, original.comment);
         assert(res == Sqlite.OK);
         
         res = stmt.step();
@@ -570,15 +538,7 @@ public class PhotoTable : DatabaseTable {
     public bool set_title(PhotoID photo_id, string? new_title) {
        return update_text_by_id(photo_id.id, "title", new_title != null ? new_title : "");
     }
-
-    public void set_gps_coords(PhotoID photo_id, GpsCoords new_gps_coords) throws DatabaseError {
-        update_int_by_id_2(photo_id.id, "has_gps", new_gps_coords.has_gps);
-        if (new_gps_coords.has_gps > 0) {
-            update_double_by_id_2(photo_id.id, "gps_lat", new_gps_coords.latitude);
-            update_double_by_id_2(photo_id.id, "gps_lon", new_gps_coords.longitude);
-        }
-    }
-
+    
     public bool set_comment(PhotoID photo_id, string? new_comment) {
        return update_text_by_id(photo_id.id, "comment", new_comment != null ? new_comment : "");
     }
