@@ -1164,7 +1164,6 @@ public abstract class Photo : PhotoSource, Dateable, Positionable {
         Orientation orientation = Orientation.TOP_LEFT;
         time_t exposure_time = 0;
         string title = "";
-        GpsCoords gps_coords = GpsCoords();
         string comment = "";
         Rating rating = Rating.UNRATED;
         
@@ -1180,7 +1179,6 @@ public abstract class Photo : PhotoSource, Dateable, Positionable {
             
             orientation = detected.metadata.get_orientation();
             title = detected.metadata.get_title();
-            gps_coords = detected.metadata.get_gps_coords();
             comment = detected.metadata.get_comment();
             params.keywords = detected.metadata.get_keywords();
             rating = detected.metadata.get_rating();
@@ -1408,8 +1406,7 @@ public abstract class Photo : PhotoSource, Dateable, Positionable {
             list += "image:orientation";
             updated_row.master.original_orientation = backing.original_orientation;
         }
-
-
+		
         if (detected.metadata != null) {
             MetadataDateTime? date_time = detected.metadata.get_exposure_date_time();
             if (date_time != null && updated_row.exposure_time != date_time.get_timestamp())
@@ -1418,7 +1415,6 @@ public abstract class Photo : PhotoSource, Dateable, Positionable {
             if (updated_row.title != detected.metadata.get_title())
                 list += "metadata:name";
 
-            
             if (updated_row.comment != detected.metadata.get_comment())
                 list += "metadata:comment";
             
@@ -1438,7 +1434,7 @@ public abstract class Photo : PhotoSource, Dateable, Positionable {
             MetadataDateTime? date_time = detected.metadata.get_exposure_date_time();
             if (date_time != null)
                 updated_row.exposure_time = date_time.get_timestamp();
-
+			
             updated_row.title = detected.metadata.get_title();
             updated_row.comment = detected.metadata.get_comment();
             updated_row.rating = detected.metadata.get_rating();

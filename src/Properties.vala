@@ -203,7 +203,7 @@ private class BasicProperties : Properties {
 
         title = source.get_name();
         
-        if (source is PhotoSource || source is PhotoImportSource) {           
+        if (source is PhotoSource || source is PhotoImportSource) {
             start_time = (source is PhotoSource) ? ((PhotoSource) source).get_exposure_time() :
                 ((PhotoImportSource) source).get_exposure_time();
             end_time = start_time;
@@ -267,7 +267,6 @@ private class BasicProperties : Properties {
             end_time = start_time;
         }
         map_widget.add_position_marker(view);
-
     }
 
     protected override void get_multiple_properties(Gee.Iterable<DataView>? iter) {

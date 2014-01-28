@@ -275,19 +275,20 @@ private class MapWidget : GtkChamplain.Embed {
         }
     }
 
-    public void highlight_position_marker(DataView v) {
-        PositionMarker? m = position_markers.get(v);
-        if (m != null) {
-            m.selected = true;
-        }
-    }
+	// These are only for showing markers for multiple photos. Not needed now.
+    // public void highlight_position_marker(DataView v) {
+    //     PositionMarker? m = position_markers.get(v);
+    //     if (m != null) {
+    //         m.selected = true;
+    //     }
+    // }
 
-    public void unhighlight_position_marker(DataView v) {
-        PositionMarker? m = position_markers.get(v);
-        if (m != null) {
-            m.selected = false;
-        }
-    }
+    // public void unhighlight_position_marker(DataView v) {
+    //     PositionMarker? m = position_markers.get(v);
+    //     if (m != null) {
+    //         m.selected = false;
+    //     }
+    // }
 
     private PositionMarker create_position_marker(DataView view) {
         DataSource data_source = view.get_source();
