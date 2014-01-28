@@ -1658,6 +1658,7 @@ public abstract class CheckerboardPage : Page {
         // brighten the new item
         item.brighten();
         highlighted = item;
+        
         return true;
     }
     

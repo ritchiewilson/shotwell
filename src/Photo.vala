@@ -1406,7 +1406,7 @@ public abstract class Photo : PhotoSource, Dateable, Positionable {
             list += "image:orientation";
             updated_row.master.original_orientation = backing.original_orientation;
         }
-		
+        
         if (detected.metadata != null) {
             MetadataDateTime? date_time = detected.metadata.get_exposure_date_time();
             if (date_time != null && updated_row.exposure_time != date_time.get_timestamp())
@@ -1414,7 +1414,7 @@ public abstract class Photo : PhotoSource, Dateable, Positionable {
             
             if (updated_row.title != detected.metadata.get_title())
                 list += "metadata:name";
-
+            
             if (updated_row.comment != detected.metadata.get_comment())
                 list += "metadata:comment";
             
@@ -1434,7 +1434,7 @@ public abstract class Photo : PhotoSource, Dateable, Positionable {
             MetadataDateTime? date_time = detected.metadata.get_exposure_date_time();
             if (date_time != null)
                 updated_row.exposure_time = date_time.get_timestamp();
-			
+            
             updated_row.title = detected.metadata.get_title();
             updated_row.comment = detected.metadata.get_comment();
             updated_row.rating = detected.metadata.get_rating();
@@ -3170,7 +3170,6 @@ public abstract class Photo : PhotoSource, Dateable, Positionable {
         double orientation_time = 0.0;
         
         total_timer.start();
-
 #endif
         
         // get required fields all at once, to avoid holding the row lock
@@ -4869,7 +4868,7 @@ public class LibraryPhoto : Photo, Flaggable, Monitorable {
         this.import_keywords = null;
         
         thumbnail_scheduler = new OneShotScheduler("LibraryPhoto", generate_thumbnails);
-
+        
         // if marked in a state where they're held in an orphanage, rehydrate their backlinks
         if ((row.flags & (FLAG_TRASH | FLAG_OFFLINE)) != 0)
             rehydrate_backlinks(global, row.backlinks);
@@ -4987,7 +4986,7 @@ public class LibraryPhoto : Photo, Flaggable, Monitorable {
         // fire signal that thumbnails have changed
         notify_thumbnail_altered();
     }
-
+    
     // These keywords are only used during import and should not be relied upon elsewhere.
     public Gee.Collection<string>? get_import_keywords() {
         return import_keywords;
