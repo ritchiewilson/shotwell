@@ -12,22 +12,6 @@ private class PositionMarker : Object {
     public PositionMarker(MapWidget map_widget, DataView view, Champlain.Marker marker) {
         this.map_widget = map_widget;
         this.view = view;
-        // marker.reactive = true;
-        marker.selectable = true;
-        marker.button_release_event.connect ((event) => {
-            if (event.button > 1)
-                return true;
-            map_widget.select_data_view(this);
-            return true;
-        });
-        marker.enter_event.connect ((event) => {
-            map_widget.highlight_data_view(this);
-            return true;
-        });
-        marker.leave_event.connect ((event) => {
-            map_widget.unhighlight_data_view(this);
-            return true;
-        });
         this.marker = marker;
     }
     public bool selected {
@@ -98,20 +82,6 @@ private class MapWidget : GtkChamplain.Embed {
         return instance;
     }
 
-    public override void drag_data_received(Gdk.DragContext context, int x, int y,
-        Gtk.SelectionData selection_data, uint info, uint time) {
-        bool success = false;
-        Gee.List<MediaSource>? media = unserialize_media_sources(selection_data.get_data(),
-            selection_data.get_length());
-        if (media != null && media.size > 0) {
-            double lat = map_view.y_to_latitude(y);
-            double lon = map_view.x_to_longitude(x);
-            success = internal_drop_received(media, lat, lon);
-        }
-
-        Gtk.drag_finish(context, success, false, time);
-    }
-
     public void set_page(Page page) {
         this.page = page;
     }
@@ -128,12 +98,6 @@ private class MapWidget : GtkChamplain.Embed {
         map_view.set_zoom_on_double_click(false);
         map_view.layer_relocated.connect(map_relocated_handler);
 
-        Gtk.TargetEntry[] dnd_targets = {
-            LibraryWindow.DND_TARGET_ENTRIES[LibraryWindow.TargetType.URI_LIST],
-            LibraryWindow.DND_TARGET_ENTRIES[LibraryWindow.TargetType.MEDIA_LIST]
-        };
-        Gtk.drag_dest_set(this, Gtk.DestDefaults.ALL, dnd_targets,
-            Gdk.DragAction.COPY | Gdk.DragAction.LINK | Gdk.DragAction.ASK);
         button_press_event.connect(map_zoom_handler);
         set_size_request(200, 200);
 
@@ -230,66 +194,6 @@ private class MapWidget : GtkChamplain.Embed {
         }
     }
 
-    public void select_data_view(PositionMarker m) {
-        ViewCollection page_view = null;
-        if (page != null)
-            page_view = page.get_view();
-        if (page_view != null && m.view is CheckerboardItem) {
-            Marker marked = page_view.start_marking();
-            marked.mark(m.view);
-            page_view.unselect_all();
-            page_view.select_marked(marked);
-        }
-    }
-
-    public void highlight_data_view(PositionMarker m) {
-        if (page != null && m.view is CheckerboardItem) {
-            CheckerboardItem item = (CheckerboardItem) m.view;
-
-            // if item is in any way out of view, scroll to it
-            Gtk.Adjustment vadj = page.get_vadjustment();
-
-            if (!(get_adjustment_relation(vadj, item.allocation.y) == AdjustmentRelation.IN_RANGE
-                && (get_adjustment_relation(vadj, item.allocation.y + item.allocation.height) == AdjustmentRelation.IN_RANGE))) {
-
-                // scroll to see the new item
-                int top = 0;
-                if (item.allocation.y < vadj.get_value()) {
-                    top = item.allocation.y;
-                    top -= CheckerboardLayout.ROW_GUTTER_PADDING / 2;
-                } else {
-                    top = item.allocation.y + item.allocation.height - (int) vadj.get_page_size();
-                    top += CheckerboardLayout.ROW_GUTTER_PADDING / 2;
-                }
-
-                vadj.set_value(top);
-            }
-            item.brighten();
-        }
-    }
-
-    public void unhighlight_data_view(PositionMarker m) {
-        if (page != null && m.view is CheckerboardItem) {
-            CheckerboardItem item = (CheckerboardItem) m.view;
-            item.unbrighten();
-        }
-    }
-
-	// These are only for showing markers for multiple photos. Not needed now.
-    // public void highlight_position_marker(DataView v) {
-    //     PositionMarker? m = position_markers.get(v);
-    //     if (m != null) {
-    //         m.selected = true;
-    //     }
-    // }
-
-    // public void unhighlight_position_marker(DataView v) {
-    //     PositionMarker? m = position_markers.get(v);
-    //     if (m != null) {
-    //         m.selected = false;
-    //     }
-    // }
-
     private PositionMarker create_position_marker(DataView view) {
         DataSource data_source = view.get_source();
         Positionable p = (Positionable) data_source;
@@ -373,24 +277,5 @@ private class MapWidget : GtkChamplain.Embed {
             }
         }
         marker_groups = marker_groups_new;
-    }
-
-    private bool internal_drop_received(Gee.List<MediaSource> media, double lat, double lon) {
-        int i = 0;
-        bool success = false;
-        while (i < media.size) {
-            Positionable p = media.get(i) as Positionable;
-            if (p != null) {
-                GpsCoords gps_coords = GpsCoords() {
-                    has_gps = 1,
-                    latitude = lat,
-                    longitude = lon
-                };
-                p.set_gps_coords(gps_coords);
-                success = true;
-            }
-            ++i;
-        }
-        return success;
     }
 }
