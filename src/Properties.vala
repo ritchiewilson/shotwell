@@ -229,6 +229,7 @@ private class BasicProperties : Properties {
                     Dimensions(0, 0);
 
                 gps_coords = metadata.get_gps_coords();
+                map_widget.add_position_marker(view);
             }
             
             if (source is PhotoSource)
@@ -266,7 +267,6 @@ private class BasicProperties : Properties {
             }
             end_time = start_time;
         }
-        map_widget.add_position_marker(view);
     }
 
     protected override void get_multiple_properties(Gee.Iterable<DataView>? iter) {
@@ -336,9 +336,6 @@ private class BasicProperties : Properties {
 
     protected override void get_properties(Page current_page) {
         base.get_properties(current_page);
-
-        map_widget.set_page(current_page);
-        map_widget_displayed = (current_page is SinglePhotoPage && gps_coords.has_gps > 0);
 
         if (end_time == 0)
             end_time = start_time;
@@ -466,8 +463,12 @@ private class BasicProperties : Properties {
             }
         }
 
-        if (map_widget_displayed)
+        if (gps_coords.has_gps > 0 && page is SinglePhotoPage && !(page is ImportQueuePage)){
+            map_widget_displayed = true;
             map_widget.show_position_markers();
+        }
+        else
+            map_widget_displayed = false;
     }
 
     public override void show_all() {
