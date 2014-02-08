@@ -463,7 +463,7 @@ private class BasicProperties : Properties {
             }
         }
 
-        if (gps_coords.has_gps > 0 && page is SinglePhotoPage && !(page is ImportQueuePage)){
+        if (gps_coords.has_gps > 0 && page.is_map_display_enabled()){
             map_widget_displayed = true;
             map_widget.show_position_markers();
         }
