@@ -193,7 +193,7 @@ private class BasicProperties : Properties {
         raw_developer = "";
         raw_assoc = "";
         map_widget.clear();
-        gps_coords = GpsCoords();
+        gps_coords.has_gps = 0;
     }
 
     protected override void get_single_properties(DataView view) {

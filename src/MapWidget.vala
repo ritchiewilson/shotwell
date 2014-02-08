@@ -71,7 +71,7 @@ private class MapWidget : GtkChamplain.Embed {
         }
         
         Champlain.Marker marker = create_champlain_marker(view);
-        add_marker(marker);
+        marker_layer.add_marker(marker);
     }
 
     public void show_position_markers() {
@@ -102,10 +102,6 @@ private class MapWidget : GtkChamplain.Embed {
         champlain_marker.set_pivot_point(0.5f, 0.5f); // set center of marker
         champlain_marker.set_location(gps_coords.latitude, gps_coords.longitude);
         return champlain_marker;
-    }
-
-    private void add_marker(Champlain.Marker marker) {
-        marker_layer.add_marker(marker);
     }
 
     private bool map_zoom_handler(Gdk.EventButton event) {

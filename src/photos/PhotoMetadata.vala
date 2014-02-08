@@ -1022,13 +1022,6 @@ public class PhotoMetadata : MediaMetadata {
         return gps_coords;
     }
 
-    public void set_gps_coords(GpsCoords gps_coords) {
-        if (gps_coords.has_gps > 0)
-            exiv2.set_gps_info(gps_coords.longitude, gps_coords.latitude, 0.0);
-        else
-            exiv2.delete_gps_info();
-    }
-
     public bool get_exposure(out MetadataRational exposure) {
         return get_rational("Exif.Photo.ExposureTime", out exposure);
     }

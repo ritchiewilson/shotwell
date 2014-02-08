@@ -2310,12 +2310,6 @@ public abstract class Photo : PhotoSource, Dateable, Positionable {
     public GpsCoords get_gps_coords() {
         return get_metadata().get_gps_coords();
     }
-
-    public void set_gps_coords(GpsCoords gps_coords) {
-        // TODO: GPS data was taken out of the db, so there is no way yet to
-        // set and save this data.
-    }
-
     
     public override bool set_comment(string? comment) {
         string? new_comment = prep_comment(comment);

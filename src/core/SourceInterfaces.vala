@@ -55,5 +55,4 @@ public struct GpsCoords {
 
 public interface Positionable : DataSource {
     public abstract GpsCoords get_gps_coords();
-    public abstract void set_gps_coords(GpsCoords gps_coords);
 }
