@@ -282,9 +282,7 @@ public class OneShotScheduler {
     }
     
     public void at_idle() {
-        // needs to be lower (higher priority) than Clutter.PRIORITY_REDRAW which is
-        // set at Priority.HIGH_IDLE + 50
-        at_priority_idle(Priority.HIGH_IDLE + 40);
+        at_priority_idle(Priority.DEFAULT_IDLE);
     }
     
     public void at_priority_idle(int priority) {
