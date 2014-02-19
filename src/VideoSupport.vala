@@ -797,6 +797,12 @@ public class Video : VideoSource, Flaggable, Monitorable, Dateable {
         }
     }
     
+    public override string get_master_filepath() {
+        lock (backing_row) {
+            return backing_row.filepath;
+        }
+    }
+    
     public override time_t get_timestamp() {
         lock (backing_row) {
             return backing_row.timestamp;

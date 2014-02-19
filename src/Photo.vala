@@ -2262,6 +2262,12 @@ public abstract class Photo : PhotoSource, Dateable {
         }
     }
     
+    public override string get_master_filepath() {
+        lock (row) {
+            return row.master.filepath;
+        }
+    }
+
     public uint64 get_editable_filesize() {
         lock (row) {
             return editable.filesize;
